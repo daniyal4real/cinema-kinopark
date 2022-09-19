@@ -1,16 +1,25 @@
 from django.shortcuts import render
 from rest_framework import status
 from apps.kinopark.models import Movie
+from apps.kinopark.models import Movie_details
 from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 from apps.kinopark.serializers import MovieSerializer
+from apps.kinopark.serializers import MovieDetailsSerializer
+import pickle
 
 
 @api_view(['GET', 'POST', 'DELETE'])
 def movies_list(request):
     if request.method == 'GET':
+        # QuerySet
         movies = Movie.objects.all()
+        # added the loader
+        movies.query = pickle.loads(pickle.dumps(movies.query))
+        movies.reverse()
+        print(movies.query)
+        print(movies.reverse())
 
         title = request.GET.get('title', None)
         if title is not None:
@@ -31,6 +40,14 @@ def movies_list(request):
         return JsonResponse({'message': '{} Фильмы были удалены!'.format(count[0])},
                             status=status.HTTP_204_NO_CONTENT)
 
+def movie_detail(request, id):
+    try:
+        movie_detail = Movie_details.objects.get(id=id)
+    except Movie.DoesNotExist:
+        return JsonResponse({'message': 'Movie detail does not exit'}, status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        movie_detail_serializer = MovieDetailsSerializer(movie_detail)
+        return JsonResponse(movie_detail_serializer.data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def movie_by_id(request, pk):

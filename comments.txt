@@ -24,3 +24,12 @@ Example of post:
 
 
 pip install django-cors-headers
+
+
+creating admin superuser
+
+python3 manage.py createsuperuser
+
+
+
+register apps then in admin file
